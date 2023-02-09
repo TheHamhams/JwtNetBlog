@@ -1,12 +1,12 @@
 ﻿namespace JwtNetBlog
 {
-    public interface UserRegistrationDto
+    public class UserRegistrationDto
     {
-        string Usersame { get; }
-        string FirstName { get; }
-        string LastName { get; }
-        string Email { get; }
-        string Password { get; }
-        string PasswordConfirm { get; }
+        public string Usersame { get; }
+        public string FirstName { get; }
+        public string LastName { get; }
+        public string Email { get; }
+        public string Password { get; }
+        public string PasswordConfirm { get; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace JwtNetBlog
 {
@@ -11,9 +12,11 @@ namespace JwtNetBlog
         public string FirstName { get; set; } = string.Empty;
         [MaxLength(20)]
         public string LastName { get; set; } = string.Empty;
-        [MaxLength]
+        [MaxLength(20)]
         public string Email { get; set; } 
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }

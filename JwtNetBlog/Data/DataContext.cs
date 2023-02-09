@@ -8,6 +8,7 @@ namespace JwtNetBlog.Data
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Post> Posts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,6 +27,14 @@ namespace JwtNetBlog.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.Email)
                 .HasMaxLength(50);
+
+            modelBuilder.Entity<Post>()
+                .Property(u => u.Title)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Post>()
+                .Property(u => u.Description)
+                .HasMaxLength(300);
 
         }
     }
