@@ -1,4 +1,5 @@
 ﻿using JwtNetBlog.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
@@ -41,6 +42,15 @@ namespace JwtNetBlog.Controllers
             }
         }
 
+        private static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+        {
+            using (var hmac = new HMACSHA512(passwordSalt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                return computedHash.SequenceEqual(passwordHash);
+            }
+        }
+
         // GET Requests
         [HttpGet]
         public async Task<ActionResult<List<User>>> GetAll()
@@ -49,7 +59,7 @@ namespace JwtNetBlog.Controllers
         }
 
         // POST Requests
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<ActionResult<User>> RegisterUser(UserRegistrationDto request)
         {
             // Check if submitted passwords match
@@ -85,6 +95,24 @@ namespace JwtNetBlog.Controllers
             await _context.SaveChangesAsync();
             
             return Ok(user);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Login(UserLoginDto request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            
+            if (user == null) 
+            {
+                return BadRequest("Username not found");
+            }
+
+            if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt)) 
+            { 
+                return BadRequest("User and Password do not match");
+            }
+
+            return Ok("Logged In");
         }
     }
 }
