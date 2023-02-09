@@ -2,11 +2,11 @@
 {
     public class UserRegistrationDto
     {
-        public string Usersame { get; }
-        public string FirstName { get; }
-        public string LastName { get; }
-        public string Email { get; }
-        public string Password { get; }
-        public string PasswordConfirm { get; }
+        public string Username { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string PasswordConfirm { get; set; }
     }
 }
