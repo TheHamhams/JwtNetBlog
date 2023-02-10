@@ -70,7 +70,7 @@ namespace JwtNetBlog.Controllers
 
             // Verify that username and email are not already registered
             var verifyUsername = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
-            var verifyEmail = await _context.Users.FirstOrDefaultAsync(_u => _u.Email == request.Email);
+            var verifyEmail = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
 
             if (verifyUsername != null || verifyEmail != null) 
             {
@@ -86,8 +86,8 @@ namespace JwtNetBlog.Controllers
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
-                PasswordHash= passwordHash,
-                PasswordSalt= passwordSalt
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt
 
             };
 
@@ -114,5 +114,59 @@ namespace JwtNetBlog.Controllers
 
             return Ok("Logged In");
         }
+
+        // PUT requests
+        [HttpPut]
+        public async Task<ActionResult<User>> PutUser(UserPutDto request)
+        {
+            // Check for user
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            if (user == null)
+            {
+                return BadRequest("Username not found");
+            }
+            
+            // Check that passwords match
+            if (request.Password != null && request.PasswordConfirm != null)
+            {
+                if (request.Password != request.PasswordConfirm)
+                {
+                    return BadRequest("Passwords do not match");
+                }
+
+                CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+                user.PasswordHash = passwordHash;
+                user.PasswordSalt = passwordSalt;
+            }
+
+            // Change FirstName if included in request
+            if (request.FirstName!= null)
+            {
+                user.FirstName = request.FirstName;
+            }
+
+            // Change LastName if included in request
+            if (request.LastName!= null)
+            {
+                user.LastName = request.LastName;
+            }
+
+            // Change Email if included in request
+            if (request.Email!= null)
+            {
+                var verifyEmail = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
+
+                if (verifyEmail != null)
+                {
+                    return BadRequest("Email are already in use");
+                }
+                user.Email = request.Email;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return (user);
+        }
+
     }
 }
