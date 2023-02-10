@@ -168,5 +168,21 @@ namespace JwtNetBlog.Controllers
             return (user);
         }
 
+        // DELETE requests
+        [HttpDelete("{username}")]
+        public async Task<ActionResult<string>> DeleteUser(string username)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user == null)
+            {
+                return BadRequest("Username not found");
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return Ok($"{username} deleted");
+        }
+
     }
 }
