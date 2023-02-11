@@ -53,6 +53,7 @@ namespace JwtNetBlog.Controllers
 
         // GET Requests
         [HttpGet]
+        // For testing
         public async Task<ActionResult<List<User>>> GetAll()
         {
             return Ok(await _context.Users.ToListAsync());
