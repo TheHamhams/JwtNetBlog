@@ -1,7 +1,11 @@
 ﻿using JwtNetBlog.Data;
+using JwtNetBlog.Services.UserService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace JwtNetBlog.Controllers
@@ -11,25 +15,16 @@ namespace JwtNetBlog.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        public static List<User> _users = new List<User>
-        {
-            new User
-            {
-                Id = 0,
-                Username = "Username",
-                FirstName = "First",
-                LastName = "Last",
-                Email = "Email",
-                PasswordHash = Array.Empty<byte>(),
-                PasswordSalt = Array.Empty<byte>()
-            }
-        };
         
         private readonly DataContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly IUserService _userService;
 
-        public UserController(DataContext context) 
+        public UserController(DataContext context, IConfiguration configuration, IUserService userService) 
         {
             _context = context;
+            _configuration = configuration;
+            _userService = userService;
         }
 
         // Password Hashing Functions
@@ -49,6 +44,30 @@ namespace JwtNetBlog.Controllers
                 var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
                 return computedHash.SequenceEqual(passwordHash);
             }
+        }
+
+        // Generate Token
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, "Standard")
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+                _configuration.GetSection("AppSettings:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
         }
 
         // GET Requests
@@ -113,7 +132,9 @@ namespace JwtNetBlog.Controllers
                 return BadRequest("User and Password do not match");
             }
 
-            return Ok("Logged In");
+            string token = CreateToken(user);
+
+            return Ok(token);
         }
 
         // PUT requests
