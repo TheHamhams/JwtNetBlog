@@ -22,6 +22,14 @@ namespace JwtNetBlog.Controllers
             return Ok(await _context.Posts.ToListAsync());
         }
 
+        [HttpGet("/recent")]
+        public async Task<ActionResult<List<Post>>> GetLatest()
+        {
+            var posts = await _context.Posts.OrderByDescending(p => p.Created).Take(5).ToListAsync();
+
+            return Ok(posts);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<List<Post>>> SeePost(int id)
         {
@@ -52,6 +60,7 @@ namespace JwtNetBlog.Controllers
             var post = new Post 
             { 
                 UserId = user.Id,
+                UserName = request.UserName,
                 Title= request.Title,
                 Description = request.Description,
                 Created = DateTime.UtcNow,
